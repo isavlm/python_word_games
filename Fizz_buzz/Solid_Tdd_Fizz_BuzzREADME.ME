@@ -1,0 +1,230 @@
+On lines 7 through 12 we are using abtraction to show how a Class should behave./
+Meaning that we will have an 'applies' followed by an 'action'./
+This rule will server as a blueprint for all the classes and methods of the program.
+
+class Rule:
+    def applies(self, number):
+        raise NotImplementedError
+
+    def action(self):
+        raise NotImplementedError 
+
+
+
+Checking a Class 
+
+class FizzRule(Rule):
+    def applies(self, number):
+        return number % 3 == 0
+
+    def action(self):
+        return "Fizz" 
+
+This class follows the same style (or template) of the Class Rule,/
+it has an 'applies' (applies to number 3) and 'action' (return 'Fizz'). 
+
+This class only has only one resposibility as stated/requested by the SOLID method. 
+
+Fizz rule only works with number 3 and Buzz with number 5. 
+FizzBuzz rule will work with both, and it also follows the blueprint.
+
+
+For class NumberRule - The program will check the numbers (1,2,3,4,5...17...30)/
+to see if it applies to any of the other rules (Fizz, Buzz, FizzBuzz) if it doesnt (like 17)/
+it will print the number 17. 
+
+
+Understanding the FizzBuzzGame Class
+
+"class FizzBuzzGame:
+    def __init__(self, rules):
+        self.rules = rules " 
+
+The __init__ will initialize the game. When it gets to self.rules it will iterate through all / 
+of the "applies" in the program to see if any of them comes back as True. 
+
+
+"    def play(self, number):
+        result = ''
+        for rule in self.rules:
+            if rule.applies(number):
+                result += rule.action()   THIS HERE IS SHORT HAND FOR  result = result + rule.action() 
+        return result or str(number) "
+
+
+
+Def play gets a number (any) and creates an empty string (result = ''), /
+Because of the "for rule in self.rules:" it will check all the rules that were initiated in def __init__... /
+When something comes back as TRUE, it will initiate the ACTION method of the rule and append (change) /
+the 'result' string. after all that it will print/return 'result' ( Fizz, Buzz, FizzBuzz), or a concatenated string /
+with the number (like 17) 
+
+
+
+GETTING TO TDD!! 
+
+Explaining step by step so I can understand. 
+
+
+First things first - If I were not using TDD I would need to use something like: 
+
+"def print_result(self, start, end):
+        for num in range(start, end + 1):
+            print(self.play(num))  " 
+
+To get a result. 
+
+
+BACK TO TDD: 
+
+Part 1. 
+
+class TestFizzBuzzGame(unittest.TestCase):
+    def setUp(self):
+        self.game = FizzBuzzGame([FizzBuzzRule(), FizzRule(), BuzzRule()])
+
+In part 1 - we are calling unittest to check our code. The setUP is used in all codes using TDD to /
+set up any necessary precontiions for the test. In this case it is calling all the rules. 
+
+Part 2. 
+    def test_fizz(self):
+        self.assertEqual(self.game.play(3), "Fizz")
+
+    def test_buzz(self):
+        self.assertEqual(self.game.play(5), "Buzz")
+
+    def test_fizzbuzz(self):
+        self.assertEqual(self.game.play(15), "FizzBuzz")
+
+    def test_number(self):
+        self.assertEqual(self.game.play(2), "2")
+
+    def test_fizz_buzz(self):
+        self.assertEqual(self.game.play(30), "FizzBuzz")
+
+In part 2. we have the real tests - we know we want to have Fizz every time a number can be divided by 3 /
+but we still need to test, so we are using the number 3 to see if the program returns Fizz. And we do /
+the same with Buzz (using 5) and FizzBuzz (using 15). 
+But then we want to know what happens if a number is not divisible by 3 or 5 (NumberRule), in this case /
+we will use number 2 (but we could have used, 1, 7, 11, 13...), just to see if the program will print then number 2. 
+Then we throw another test to see if we get FizzBuzz again, this time with 30. 
+
+On my first test I got an error message:  
+
+# ERROR MESSAGE BEGINS 
+
+Traceback (most recent call last):
+  File "FILE PATH", line 80, in test_fizz_buzz
+    self.assertEqual(self.game.play(30), "FizzBuzz")
+AssertionError: 'FizzBuzzFizzBuzz' != 'FizzBuzz'
+- FizzBuzzFizzBuzz
++ FizzBuzz
+
+
+======================================================================
+FAIL: test_fizzbuzz (__main__.TestFizzBuzzGame.test_fizzbuzz)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "FILE PATH", line 74, in test_fizzbuzz
+    self.assertEqual(self.game.play(15), "FizzBuzz")
+AssertionError: 'FizzBuzzFizzBuzz' != 'FizzBuzz'
+- FizzBuzzFizzBuzz
++ FizzBuzz
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+FAILED (failures=2)
+
+#END OF ERROR MESSAGE 
+
+
+This message shows me that my program is returning 'FizzBuzzFizzBuzz' instead of just 'FizzBuzz' as we want. /
+
+So something is wrong on my code. To understand the error: 
+
+It says that on line 74 of the code (the test_fizz_buzz) the program failed and it happened again on the next test line 80 (using number 30). 
+
+So since we were we are testing the PLAY, we are testing the play method from FizzBuzzGame. Because of this I know that I have something wrong there. 
+
+#FROM LINE 153 TO LINE 208 YOU HAVE THE ORIGINAL CODE BEFORE DEBUGGING. 
+
+
+class Rule:
+    def applies(self, number):
+        raise NotImplementedError
+
+    def action(self):
+        raise NotImplementedError
+
+
+class FizzRule(Rule):
+    def applies(self, number):
+        return number % 3 == 0
+
+    def action(self):
+        return "Fizz"
+
+
+class BuzzRule(Rule):
+    def applies(self, number):
+        return number % 5 == 0
+
+    def action(self):
+        return "Buzz"
+
+
+class FizzBuzzRule(Rule):
+    def applies(self, number):
+        return number % 3 == 0 and number % 5 == 0
+
+    def action(self):
+        return "FizzBuzz"
+
+
+class NumberRule(Rule):
+    def __init__(self, number):
+        self.number = number
+
+    def applies(self, number):
+        return self.number == number
+
+    def action(self):
+        return str(self.number)
+
+>>>> ERROR MUST BE AROUND HERE <<<<
+class FizzBuzzGame:
+    def __init__(self, rules):
+        self.rules = rules
+
+    def play(self, number):
+        result = ''
+        for rule in self.rules:
+            if rule.applies(number):
+                result += rule.action()
+        return result or str(number) 
+
+#END OF ORIGINAL CODE FOR TEST 1 
+
+
+The quickest and easiest solution for that bug that I found, was to return an empty string for the /
+class FizzBuzzRule(Rule):
+    def applies(self, number):
+        return number % 3 == 0 and number % 5 == 0
+
+    def action(self):
+        return ""
+
+For this second test, after I put the empty string, I used the numbers 45 and 480 as a test and it worked. 
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+> FILE PATH /Fizz_buzz/Solid_Tdd_Fizz_Buzz
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
